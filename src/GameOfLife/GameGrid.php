@@ -205,6 +205,10 @@ class GameGrid
    */
   public function setPoint($row, $col, $value)
   {
+    if (1 !== strlen($value)) {
+      throw new InvalidArgumentException("Values can only be a single digit/letter/etc.  Larger will throw off array length of grid");
+    }
+
     $gridIndex = $this->pointToGridIndex($row, $col);
 
     $this->grid[$gridIndex] = $value;

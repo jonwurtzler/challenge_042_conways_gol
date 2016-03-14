@@ -44,9 +44,16 @@ class GameOfLifeTest extends PHPUnit_Framework_TestCase
         $this->grid50x100  = null;
     }
 
+    public function testPointSetGet()
+    {
+      $this->grid100x100->setPoint(1, 20, 1);
+      $this->assertEquals(1, $this->grid100x100->getPoint(1, 20));
+    }
+
     /** ---------------------------------------------------------------
      * Square Grid - 100 x 100 grid
      * ------------------------------------------------------------- */
+
     public function testSquareOriginPoint()
     {
         $point = $this->grid100x100->pointToGridIndex(1, 1);
@@ -68,6 +75,7 @@ class GameOfLifeTest extends PHPUnit_Framework_TestCase
     /** ---------------------------------------------------------------
      * Wide Grid - 100 x 50 grid
      * ------------------------------------------------------------- */
+
     public function testWideOriginPoint()
     {
         $point = $this->grid100x50->pointToGridIndex(1, 1);
@@ -89,6 +97,7 @@ class GameOfLifeTest extends PHPUnit_Framework_TestCase
     /** ---------------------------------------------------------------
      * Tall Grid - 50 x 100 grid
      * ------------------------------------------------------------- */
+
     public function testTallOriginPoint()
     {
       $point = $this->grid50x100->pointToGridIndex(1, 1);
@@ -111,6 +120,22 @@ class GameOfLifeTest extends PHPUnit_Framework_TestCase
      * Testing Known reasons to throw Exceptions
      * -------------------------------------------------------------
      */
+
+    /**
+     * @expectedException Exception
+     */
+    public function testLargerValueSet()
+    {
+      $this->grid100x100->setPoint(2, 2, 10);
+    }
+
+    /**
+     * @expectedException Exception
+     */
+    public function testSmallerValueSet()
+    {
+      $this->grid100x100->setPoint(2, 2, "");
+    }
 
     /**
      * @expectedException Exception

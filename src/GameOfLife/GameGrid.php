@@ -2,6 +2,8 @@
 
 namespace GameOfLife;
 
+use InvalidArgumentException;
+
 /**
  * GameGrid - A grid containing a given state within the game.
  */
@@ -16,6 +18,11 @@ class GameGrid
    * @var int
    */
   protected $width;
+
+  /**
+   * @var string
+   */
+  protected $grid;
 
   /**
    * @var array
@@ -52,6 +59,8 @@ class GameGrid
   {
     $this->height = $height;
     $this->width  = $width;
+
+    $this->grid = str_pad("", $width * $height, 0);
   }
 
   /**
@@ -96,7 +105,9 @@ class GameGrid
    */
   public function getPoint($row, $col)
   {
+    $gridIndex = $this->pointToGridIndex($row, $col);
 
+    return $this->grid[$gridIndex];
   }
 
   /**
@@ -194,9 +205,52 @@ class GameGrid
    */
   public function setPoint($row, $col, $value)
   {
+    $gridIndex = $this->pointToGridIndex($row, $col);
 
+    $this->grid[$gridIndex] = $value;
 
     return $this;
+  }
+
+  /**
+   * We will pass points for a grid as normal row 1, col 2.
+   *   Validate that we don't pass a point outside the bounds of our grid.
+   *   Convert the point to an array position.
+   *
+   * @param int $row
+   * @param int $col
+   *
+   * @return int
+   */
+  public function pointToGridIndex($row, $col)
+  {
+    // Make sure point is valid
+    $this->validatePoint(--$row, --$col);
+
+    return ($row * $this->width) + $col;
+  }
+
+  /**
+   * Ensure that the point provided is within the range of the given grid.
+   *
+   * @param int $row
+   * @param int $col
+   *
+   * @return bool
+   * @throws InvalidArgumentException
+   */
+  private function validatePoint($row, $col)
+  {
+    if (
+      $row < 0
+      || $col < 0
+      || $row > $this->height
+      || $col > $this->width
+    ) {
+      throw new InvalidArgumentException("Target Point Out of Bounds for grid: " . $this->width . "x" . $this->height);
+    }
+
+    return true;
   }
 
 }

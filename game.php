@@ -9,11 +9,14 @@
  * @date 03/09/2016
  */
 
-use GameOfLife\GameOfLife;
+use GameOfLife\GridAnimator;
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-$width  = (string) isset($argv[1]) ? $argv[1] : 100;
-$height = (string) isset($argv[2]) ? $argv[2] : 100;
+$config = (string) isset($argv[1]) ? $argv[1] : 0;
 
-echo ("Done!\n");
+$animator = new GridAnimator($config);
+
+for ($i = 0; $i < 100; $i++) {
+  $animator->animate();
+}

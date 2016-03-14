@@ -11,8 +11,8 @@ Install the vendor dependencies with Composer:
 
     $ php game.php <config>
     
-    php game.php 0 - Animates a glider gun.  This option is set by default.
-    php game.php 1 - Animates still life.
-    php game.php 2 - Animates oscilators.
-    php game.php 3 - Animates a single glider.
+    $ php game.php 0 - Animates a glider gun.  This option is set by default.
+    $ php game.php 1 - Animates still life.
+    $ php game.php 2 - Animates oscilators.
+    $ php game.php 3 - Animates a single glider.
     

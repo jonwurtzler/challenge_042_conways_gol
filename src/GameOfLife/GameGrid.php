@@ -79,6 +79,27 @@ class GameGrid
   }
 
   /**
+   * @return int
+   */
+  public function getHeight()
+  {
+    return $this->height;
+  }
+
+  /**
+   * Return the value at a given point.
+   *
+   * @param int $row
+   * @param int $col
+   *
+   * @return int
+   */
+  public function getPoint($row, $col)
+  {
+
+  }
+
+  /**
    * @return array
    */
   public function getRowFirst()
@@ -92,6 +113,14 @@ class GameGrid
   public function getRowLast()
   {
     return $this->rowLast;
+  }
+
+  /**
+   * @return int
+   */
+  public function getWidth()
+  {
+    return $this->width;
   }
 
   /**
@@ -155,12 +184,15 @@ class GameGrid
   }
 
   /**
+   * Set the value at a given point.
+   *
    * @param int $row
    * @param int $col
+   * @param int $value
    *
    * @return $this
    */
-  public function setPoint($row, $col)
+  public function setPoint($row, $col, $value)
   {
 
 

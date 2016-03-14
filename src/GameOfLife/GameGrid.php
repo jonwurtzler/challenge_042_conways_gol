@@ -9,6 +9,9 @@ use InvalidArgumentException;
  */
 class GameGrid
 {
+  const CHAR_DEAD = ".";
+  const CHAR_LIVE = "X";
+
   /**
    * @var int
    */
@@ -60,7 +63,7 @@ class GameGrid
     $this->height = $height;
     $this->width  = $width;
 
-    $this->grid = str_pad("", $width * $height, 0);
+    $this->grid = str_pad("", $width * $height, self::CHAR_DEAD);
   }
 
   /**
@@ -85,6 +88,14 @@ class GameGrid
   public function getCorners()
   {
     return $this->corners;
+  }
+
+  /**
+   * @return string
+   */
+  public function getGrid()
+  {
+    return $this->grid;
   }
 
   /**
@@ -171,6 +182,20 @@ class GameGrid
   }
 
   /**
+   * Quick way to reset the grid.  Used for setting between animations.
+   *
+   * @param string $grid
+   *
+   * @return $this
+   */
+  public function setGrid($grid)
+  {
+    $this->grid = $grid;
+
+    return $this;
+  }
+
+  /**
    * @param array $rowFirst
    *
    * @return $this
@@ -235,6 +260,18 @@ class GameGrid
   }
 
   /**
+   * Populate grid with passed points.
+   *
+   * @param array $points
+   */
+  public function populateGrid($points)
+  {
+    foreach ($points as $point) {
+      $this->setPoint($point[0], $point[1], self::CHAR_LIVE);
+    }
+  }
+
+  /**
    * Ensure that the point provided is within the range of the given grid.
    *
    * @param int $row
@@ -243,7 +280,7 @@ class GameGrid
    * @return bool
    * @throws InvalidArgumentException
    */
-  private function validatePoint($row, $col)
+  public function validatePoint($row, $col)
   {
     if (
       $row < 0
@@ -251,10 +288,217 @@ class GameGrid
       || $row > $this->height
       || $col > $this->width
     ) {
-      throw new InvalidArgumentException("Target Point Out of Bounds for grid: " . $this->width . "x" . $this->height);
+      throw new InvalidArgumentException(
+        "Target Point Out of Bounds for Point: " . $row . ", " . $col .
+        " Grid: " . $this->width . "x" . $this->height
+
+      );
     }
 
     return true;
+  }
+
+  /**
+   * Based on a given point, determine what it's new value should be based on it's current.
+   *
+   * @param int $row
+   * @param int $col
+   *
+   * @return bool|string
+   */
+  public function determineNewPointState($row, $col)
+  {
+    $state     = false;
+    $gridIndex = $this->pointToGridIndex($row, $col);
+
+    // Check if a corner
+    if (($corner = array_search($gridIndex, $this->corners)) > -1) {
+      $state = $this->processCorner($corner, $row, $col);
+    } elseif (array_search($gridIndex, $this->rowFirst) > -1) {
+      $state = $this->processSide("top", $row, $col);
+    } elseif (array_search($gridIndex, $this->rowLast) > -1) {
+      $state = $this->processSide("bottom", $row, $col);
+    } elseif (array_search($gridIndex, $this->colFirst) > -1) {
+      $state = $this->processSide("left", $row, $col);
+    } elseif (array_search($gridIndex, $this->colLast) > -1) {
+      $state = $this->processSide("right", $row, $col);
+    } else {
+      $state = $this->processCenterPoint($row, $col);
+    }
+
+    return $state;
+  }
+
+  /**
+   * Process a corner node.
+   *
+   * @param int $cornerIndex
+   * @param $row
+   * @param $col
+   *
+   * @return bool|string
+   */
+  private function processCorner($cornerIndex, $row, $col)
+  {
+    $points = [];
+
+    switch ($cornerIndex) {
+      // Top Left
+      case 0:
+        $points[] = [$row, $col + 1];
+        $points[] = [$row + 1, $col];
+        $points[] = [$row + 1, $col + 1];
+        break;
+
+      // Top Right
+      case 1:
+        $points[] = [$row, $col - 1];
+        $points[] = [$row + 1, $col - 1];
+        $points[] = [$row + 1, $col];
+        break;
+
+      // Bottom Left
+      case 2:
+        $points[] = [$row, $col + 1];
+        $points[] = [$row - 1, $col];
+        $points[] = [$row - 1, $col + 1];
+        break;
+
+      // Bottom Right
+      case 3:
+        $points[] = [$row, $col - 1];
+        $points[] = [$row - 1, $col - 1];
+        $points[] = [$row - 1, $col];
+        break;
+      default:
+        return false;
+    }
+
+    return $this->processPoints($points);
+  }
+
+  /**
+   * Process a side point.
+   *
+   * @param string $side
+   * @param int    $row
+   * @param int    $col
+   *
+   * @return bool|string
+   */
+  private function processSide($side, $row, $col)
+  {
+    $points = [];
+
+    switch ($side) {
+      case "top":
+        $points[] = [$row, $col - 1];
+        $points[] = [$row + 1, $col - 1];
+        $points[] = [$row + 1, $col];
+        $points[] = [$row + 1, $col + 1];
+        $points[] = [$row, $col + 1];
+        break;
+      case "bottom":
+        $points[] = [$row, $col - 1];
+        $points[] = [$row - 1, $col - 1];
+        $points[] = [$row - 1, $col];
+        $points[] = [$row - 1, $col + 1];
+        $points[] = [$row, $col + 1];
+        break;
+      case "left":
+        $points[] = [$row + 1, $col];
+        $points[] = [$row + 1, $col + 1];
+        $points[] = [$row, $col + 1];
+        $points[] = [$row - 1, $col + 1];
+        $points[] = [$row - 1, $col];
+        break;
+      case "right":
+        $points[] = [$row + 1, $col];
+        $points[] = [$row + 1, $col - 1];
+        $points[] = [$row, $col - 1];
+        $points[] = [$row - 1, $col - 1];
+        $points[] = [$row - 1, $col];
+        break;
+      default:
+        return false;
+    }
+
+    return $this->processPoints($points);
+  }
+
+  /**
+   * Process a point not a corner or side.
+   *
+   * @param int $row
+   * @param int $col
+   *
+   * @return bool|string
+   */
+  private function processCenterPoint($row, $col)
+  {
+    $processPoints = [
+      [$row + 1, $col + 1],
+      [$row + 1, $col],
+      [$row + 1, $col - 1],
+      [$row, $col + 1],
+      [$row, $col - 1],
+      [$row - 1, $col + 1],
+      [$row - 1, $col],
+      [$row - 1, $col -1],
+    ];
+
+    return $this->processPoints($processPoints);
+  }
+
+  /**
+   * Grab each of the needed points to determine new state.
+   *
+   * @param array $points
+   *
+   * @return bool|string
+   */
+  private function processPoints($points)
+  {
+    $aliveCount = 0;
+
+    foreach ($points as $point) {
+      $point = $this->getPoint($point[0], $point[1]);
+      if (self::CHAR_LIVE === $point) {
+        $aliveCount++;
+      }
+    }
+
+    return $this->determineState($aliveCount);
+  }
+
+  /**
+   * Based on how many 'live' nodes we have around the given, pass the new state.
+   *
+   * @param int $aliveCount
+   *
+   * @return bool|string
+   */
+  private function determineState($aliveCount)
+  {
+    switch ($aliveCount) {
+      // Underpopulation
+      case 0:
+      case 1:
+        return self::CHAR_DEAD;
+        break;
+      // Status Quo
+      case 2:
+        return false;
+        break;
+      // Reproduction
+      case 3:
+        return self::CHAR_LIVE;
+        break;
+      // Overpopulation
+      default:
+        return self::CHAR_DEAD;
+        break;
+    }
   }
 
 }
